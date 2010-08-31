@@ -28,13 +28,6 @@ typedef struct {
         u8 has_alpha;
 } gfx_rect;
 
-#define CONSOLE_WIDTH 500
-#define CONSOLE_LINES 10
-#define CONSOLE_Y 100
-
-#define CONSOLE_X  58
-#define CONSOLE_CHAR_HEIGHT 16
-#define CONSOLE_ROW_HEIGHT (CONSOLE_CHAR_HEIGHT + 1) 
 
 static u32 *xfb = NULL;
 static int y_add = 0;
@@ -192,6 +185,10 @@ void printtmd() {
 }
 
 void printdone() {
+	u16 scrolld;
+	for (scrolld = 0; scrolld < 20; ++scrolld) {
+		scroll();
+	}
 	print_str_noscroll(0, CONSOLE_Y + ((CONSOLE_LINES - 1) * CONSOLE_ROW_HEIGHT), "Done - attempting to boot System Menu");
 }
 

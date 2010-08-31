@@ -7,10 +7,10 @@ the following and pack them as WADs, and copy the result to the 'wad'
 folder...
 
 Title ID            Version
--------------------------------------------------
-0000000100000002    257       (System Menu 3.1U)
-0000000100000011    512       (IOS17, for rgsel)
-000000010000001e    1040      (IOS30, for menu)
-000000010000001f    1037      (IOS31, for EULA)
-0001000848414b45    2         (EULA)
-0001000848414c45    2         (rgnsel)
+------------------------------------------------------------
+0000000100000002    257/258/256       (System Menu 3.1U/E/J)
+0000000100000011    512               (IOS17, for rgsel)
+000000010000001e    1040              (IOS30, for menu)
+000000010000001f    1037              (IOS31, for EULA)
+0001000848414b45    2                 (EULA)
+0001000848414c45    2                 (rgnsel)

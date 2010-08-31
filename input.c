@@ -16,6 +16,7 @@ Copyright (C) 2009		bLAStY <blasty@bootmii.org>
 #include "bootmii_ppc.h"
 #include "input.h"
 #include "string.h"
+#include "console.h"
 
 #define PADREG(x) (0xCD006400 + (x)*4)
 
@@ -98,6 +99,7 @@ u16 gpio_read(void) {
 
 	if (!((read32(0x0C003000) >> 16) & 1) && reset_delay == 0) {
 		res |= GPIO_RESET;
+		while((read32(0x0C003000) >> 16) & 1);
 		reset_delay = 5;
 	}
 
@@ -129,14 +131,38 @@ u16 input_read(void) {
 	return pad_read(&_pad, 0) | gpio_read();
 }
 
-u16 input_wait(void) {
+
+u16 input_waitb(void) {
 	u16 res;
 
 	do {
 		udelay(20000);
 		res = input_read();
 	} while (!(res & PAD_ANY));
+	if (res & GPIO_POWER) {
+		gfx_printf("HANGING: Turn off Wii.");
+	}
+	while (res & GPIO_POWER) {
+		// shoop da loop
+	}
 
 	return res;
 }
 
+u16 input_wait(void) {
+	u16 in;
+        u16 res;
+	u16 countr;
+
+	in = input_waitb();
+	udelay(20000);
+	countr = 10;
+        do {
+                udelay(20000);
+                res = input_read();
+		countr--;
+		if (res & PAD_ANY)
+			countr = 10;
+        } while ((res & PAD_ANY) || (countr > 0));
+	return in;
+}

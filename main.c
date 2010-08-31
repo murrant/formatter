@@ -29,8 +29,13 @@ Copyright (C) 2009              John Kelley <wiidev@kelley.ca>
 #include "es.h"
 #include "wad.h"
 #include "aes.h"
+#include "nandfs.h"
 
 #include "string.h"
+
+#define SETTINGS_NORESTORE 0
+#define SETTINGS_RESTORESERIAL 1
+#define SETTINGS_RESTOREFILE 2
 
 #define MINIMUM_MINI_VERSION 0x00010001
 #define TITLEID1(titleId)           ((u32)((titleId) >> 32))
@@ -160,7 +165,7 @@ int main(void)
 	ipc_slowping();
 
 	gecko_init();
-    input_init();
+        input_init();
 	init_fb(vmode);
 
 	VIDEO_Init(vmode);
@@ -181,6 +186,11 @@ int main(void)
 	}
 
 //    print_str_noscroll(112, 112, "ohai, world!\n");
+        gfx_printf("Formatter!");
+        gfx_printf("I'm about to delete EVERYTHING and");
+	gfx_printf("install the wads in the wad folder.");
+	gfx_printf("If you do not want to proceed, hold");
+	gfx_printf("the POWER button on your Wii now.");
 
 	testOTP();
 
@@ -214,6 +224,47 @@ int main(void)
 	FIL fatf;
 	DIR fatd;
 	FILINFO fati;
+
+
+	char settingTxt[0x300] __attribute__((aligned(32)));
+	memset(settingTxt, 0, 0x300);
+	s32 actulen;
+	u32 actulentwo;
+	int restoreSetting;
+
+	nandfs_open(&fp, "/title/00000001/00000002/data/setting.txt");
+	actulen = nandfs_read((u8 *)settingTxt, 256, 1, &fp);
+	f_open(&fatf, "/setting.txt", FA_WRITE);
+	f_write(&fatf, settingTxt, 256, &actulentwo);
+	f_close(&fatf);
+	//nandfs_close(&fp);
+	gfx_printf("Saved your setting.txt to SD:");
+	gfx_printf("If you want to use it after backup");
+	gfx_printf("press A/RESET now.");
+	gfx_printf("Otherwise, press START/EJECT.");
+	u32 padinput = input_wait();
+	if (padinput & PAD_A) { // This catches GPIO_RESET too
+/*		gfx_printf("Use the serial number: press A/RESET");
+		gfx_printf("Use the whole file, press START/EJECT");
+		padinput = input_wait();
+		if (padinput & PAD_A) { // and use the serial number
+			restoreSetting = SETTINGS_RESTORESERIAL;
+			gfx_printf("Restoring serial only.");
+		} else {*/
+			restoreSetting = SETTINGS_RESTOREFILE;
+			gfx_printf("Restoring entire file.");
+//		}
+	} else {
+		restoreSetting = SETTINGS_NORESTORE;
+		gfx_printf("Generating setting.txt.");
+	}
+	gfx_printf("LAST CHANCE: Turn off Wii to abort,");
+	gfx_printf("or press any button to continue.");
+	input_wait();
+	int i;
+	for (i = 0; i <= CONSOLE_LINES; ++i)
+		scroll();
+	gfx_printf("DUMMIE'D");
 //goto lol;
 	es_format();
 	
@@ -236,7 +287,7 @@ int main(void)
 
 		if(wad_install(&fatf)) break;
 		u64 ttid = get_titleid(&fatf);
-		de_printf("TITLEID1: %u TITLEID2: %u              ", TITLEID1(ttid), TITLEID2(ttid));
+//		de_printf("TITLEID1: %u TITLEID2: %u              ", TITLEID1(ttid), TITLEID2(ttid));
 		if(TITLEID1(ttid) == 1 && TITLEID2(ttid) == 2) {
 			switch (get_revision(&fatf)) {
 				case 97: case 193: case 225: case 257: case 289: case 353: case 385: case 417: case 449: case 481: case 513:
@@ -264,12 +315,8 @@ int main(void)
 	}
 
 	printf("create: %d\n", nandfs_create("/title/00000001/00000002/data/setting.txt", 0, 0, NANDFS_ATTR_FILE, 3, 3, 3));
-//lol:
 	s32 ret = nandfs_open(&fp, "/title/00000001/00000002/data/setting.txt");
 	printf("open 2: %d\n", ret);
-
-	char settingTxt[0x100] __attribute__((aligned(32)));
-	memset(settingTxt, 0, 0x100);
 
 	char video[5] = "NTSC";
 	char gameRegion[3] = "US";
@@ -286,10 +333,41 @@ int main(void)
 			strcpy(area, "JPN");
 			break;
 	}
-	u32 serno = 104170609;
-	sprintf(settingTxt, "AREA=%s\r\nMODEL=RVL-001(%s)\r\nDVD=0\r\nMPCH=0x7FFE\r\nCODE=LU\r\nSERNO=%d\r\nVIDEO=%s\r\nGAME=%s\r\n", area, area, serno, video, gameRegion);
+	if (restoreSetting == SETTINGS_NORESTORE) {
+		u32 serno = 104170609;
+		sprintf(settingTxt, "AREA=%s\r\nMODEL=RVL-001(%s)\r\nDVD=0\r\nMPCH=0x7FFE\r\nCODE=LU\r\nSERNO=%d\r\nVIDEO=%s\r\nGAME=%s\r\n", area, area, serno, video, gameRegion);
 
-	lolcrypt((u8 *)settingTxt);
+		lolcrypt((u8 *)settingTxt);
+	} else if (restoreSetting == SETTINGS_RESTORESERIAL) { // restore serial.
+		// thanks tona
+		char fulltext[9] = "123456789";
+		char *line = (char *)settingTxt;
+		char *delim, *end;
+		int slen;
+		int nlen = strlen("SERNO");
+		
+		lolcrypt((u8 *)settingTxt);
+		while(line < (settingTxt+0x100) ) {
+			delim = strchr(line, '=');
+			if(delim && ((delim - line) == nlen) && !memcmp("SERNO", line, nlen)) {
+				delim++;
+				end = strchr(line, '\r');
+					if(end) {
+					slen = end - delim;
+					if(slen < 9) {
+						memcpy(fulltext, delim, slen);
+						fulltext[slen] = 0;
+						return slen;
+					} else {
+					}
+				}
+			}
+			
+			// skip to line end
+			while(line < (settingTxt+0x100) && *line++ != '\n');
+		}
+	} else { // restore whole file. - already loaded into settingTxt
+	}
 
 	nandfs_write((u8 *)settingTxt, sizeof(settingTxt), 1, &fp);
 
@@ -302,6 +380,7 @@ int main(void)
 
 	boot2_run(1, 2);
 //		gfx_printf("Done\n");
+//lol:
 	printdone();
 
 	return 0;

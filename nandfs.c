@@ -705,7 +705,7 @@ s32 nandfs_write(const u8 *ptr, u32 size, u32 nmemb, struct nandfs_fp *fp)
 			printf("-- copy_offset = %d\n", copy_offset);
 			hexdump(buffer + copy_offset, 0x20);
 			printf("--\n");
-			hexdump(ptr, 0x20);
+			//hexdump(ptr, 0x20);
 			printf("--\n");
 #endif
 			memcpy(buffer + copy_offset, ptr, copy_len);
