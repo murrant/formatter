@@ -17,6 +17,7 @@ Copyright (C) 2008, 2009	Sven Peter <svenpeter@gmail.com>
 #include "otp.h"
 #include "fs_hmac.h"
 #include "string.h"
+#include "main.h"
 
 int ipc_powerpc_boot(const void *addr, u32 len)
 {

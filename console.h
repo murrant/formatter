@@ -20,5 +20,11 @@ u32 *get_xfb(void);
 int gfx_printf(const char *fmt, ...);
 extern unsigned char console_font_8x16[];
 
+void printticket();
+void printtmd();
+void printregion(const char *reg);
+int printwhichwad(const char *wadfn, int size);
+int printinstall(int contentno, int totalcontent, u64 size);
+
 #endif
 

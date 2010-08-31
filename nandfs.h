@@ -22,6 +22,8 @@ Copyright (C) 2008, 2009	Sven Peter <svenpeter@gmail.com>
 
 #define NANDFS_DUMMY 0
 #define NANDFS_VERBOSE NAND_VERBOSE
+#undef NANDFS_VERBOSE
+#define NANDFS_VERBOSE 2
 
 #define NANDFS_ATTR_FILE		1
 #define NANDFS_ATTR_DIR			2

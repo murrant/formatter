@@ -158,9 +158,11 @@ void print_str_noscroll(int x, int y, char *str) {
 	}
 }
 
-void print_str(const char *str, size_t len) {
+void print_str(const char *strin, size_t len) {
 	unsigned int i;
 	gfx_rect d_char;
+	char str[40];
+	memcpy(str,strin, strlen(strin)+1);
 
 	scroll();
 	d_char.width  = 8;
@@ -174,6 +176,52 @@ void print_str(const char *str, size_t len) {
 	}
 }
 
+int printinstall(int contentno, int totalcontent, u64 size) {
+	char buffer[40];
+	sprintf(buffer, "Installing %2u/%2u...                   ", contentno, totalcontent, size);
+	print_str_noscroll(0, CONSOLE_Y + ((CONSOLE_LINES - 1) * CONSOLE_ROW_HEIGHT), buffer);
+	return 0;
+}
+
+void printticket() {
+	print_str_noscroll(0, CONSOLE_Y + ((CONSOLE_LINES - 1) * CONSOLE_ROW_HEIGHT), "Installing ticket                         ");
+}
+
+void printtmd() {
+        print_str_noscroll(0, CONSOLE_Y + ((CONSOLE_LINES - 1) * CONSOLE_ROW_HEIGHT), "Installing TMD                           ");
+}
+
+void printdone() {
+	print_str_noscroll(0, CONSOLE_Y + ((CONSOLE_LINES - 1) * CONSOLE_ROW_HEIGHT), "Done - attempting to boot System Menu");
+}
+
+void printregion(const char *reg) {
+	char buffer[40];
+	sprintf(buffer, "REGION: %s", reg);
+	print_str_noscroll(0, CONSOLE_Y + ((CONSOLE_LINES - 5) * CONSOLE_ROW_HEIGHT), buffer);
+}
+
+int printwhichwad(const char *wadfn, int size) {
+	char buffer[40];
+	sprintf(buffer, "CURRENT WAD: %s (%d b)", wadfn, size);
+	print_str_noscroll(0, CONSOLE_Y + ((CONSOLE_LINES - 2) * CONSOLE_ROW_HEIGHT), buffer);
+	return 0;
+}
+
+void de_printf(const char *fmt, ...)
+{
+        va_list args;
+        char buffer[40];
+        int i;
+
+        memset(buffer, 0, sizeof buffer);
+        va_start(args, fmt);
+        i = vsnprintf(buffer, sizeof(buffer), fmt, args);
+        va_end(args);
+	
+	print_str_noscroll(0, CONSOLE_Y + ((CONSOLE_LINES - 6) * CONSOLE_ROW_HEIGHT), buffer);
+}
+
 int gfx_printf(const char *fmt, ...)
 {
 	va_list args;
@@ -184,6 +232,7 @@ int gfx_printf(const char *fmt, ...)
 	va_start(args, fmt);
 	i = vsnprintf(buffer, sizeof(buffer), fmt, args);
 	va_end(args);
+	
 
 	if (i > 0) {
 		print_str(buffer, i);

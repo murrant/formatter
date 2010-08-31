@@ -16,6 +16,7 @@
 #include "sha1.h"
 #include "es.h"
 #include "main.h"
+#include "console.h"
 
 #define ASSERT(x) do { if(!(x)) { printf("ASSERT failure: %s in %s:%d\n", #x, __FILE__, __LINE__); return -1; } } while(0)
 
@@ -130,11 +131,13 @@ s32 es_addtitle(struct tmd *tmd, struct tik *tik)
 	sprintf(path, "/title/%08x/%08x/data", tid_hi, tid_lo);
 	ASSERT(!nandfs_create(path, uid, gid, NANDFS_ATTR_DIR, 3, 0, 0));
 
+	printtmd();
 	sprintf(path, "/title/%08x/%08x/content/title.tmd", tid_hi, tid_lo);
 	ASSERT(!nandfs_create(path, 0, 0, NANDFS_ATTR_FILE, 3, 3, 0));
 	ASSERT(!nandfs_open(&fp, path));
 	ASSERT(tmd_size == (u32) nandfs_write((void*)tmd, tmd_size, 1, &fp));
 
+	printticket();
 	sprintf(path, "/ticket/%08x/%08x.tik", tid_hi, tid_lo);
 	ASSERT(!nandfs_create(path, 0, 0, NANDFS_ATTR_FILE, 3, 3, 0));
 	ASSERT(!nandfs_open(&fp, path));

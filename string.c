@@ -182,3 +182,8 @@ size_t strcspn(const char *s1, const char *s2)
 	return len;
 }
 
+void strcpy(char *d, const char *s)
+{
+	memcpy(d, s, strlen(s) + 1);
+}
+

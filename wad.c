@@ -21,6 +21,7 @@
 #include "aes.h"
 #include "malloc.h"
 #include "main.h"
+#include "console.h"
 
 #define ASSERT(x) do { if(!(x)) { printf("Assert failure: %s in %s:%d\n", #x, __FILE__, __LINE__); return -1; } } while(0)
 
@@ -84,6 +85,8 @@ s32 wad_install(FIL *fil)
 	printf("num contents: %d\n", tmd->num_contents);
 	printf("%08x %08x\n", tmd, tik);
 	for(i = 0; i < tmd->num_contents; i++) {
+//		gfx_printf("Installing content %u/%u (%u)...", i + 1, tmd->num_contents, tmd->contents[i].size);
+		printinstall(i + 1, tmd->num_contents, tmd->contents[i].size);
 #ifdef MSPACES
 		u8 *content = mspace_memalign(mem2space, 32, ALIGN(tmd->contents[i].size, 0x40));
 #else
@@ -119,4 +122,65 @@ s32 wad_install(FIL *fil)
 	free(tik);
 
 	return 0;
+}
+
+u64 get_titleid(FIL *fil)
+{
+        u32 br;
+        struct wadheader hdr __attribute__((aligned(32)));
+        f_lseek(fil, 0);
+        ASSERT(!f_read(fil, &hdr, sizeof(hdr), &br));
+        ASSERT(br == sizeof(hdr));
+
+        u32 offset = 0;
+
+
+        ASSERT(hdr.hdr_size == 0x20);
+
+        offset += ALIGN(hdr.hdr_size, 0x40);
+        offset += ALIGN(hdr.certs_size, 0x40);
+        struct tik *tik = memalign(32, hdr.tik_size);
+        ASSERT(tik);
+        f_lseek(fil, offset);
+        ASSERT(!f_read(fil, tik, hdr.tik_size, &br));
+        ASSERT(br == hdr.tik_size);
+        offset += ALIGN(hdr.tik_size, 0x40);
+        struct tmd *tmd = memalign(32, hdr.tmd_size);
+        ASSERT(tmd);
+        f_lseek(fil, offset);
+        ASSERT(!f_read(fil, tmd, hdr.tmd_size, &br));
+        ASSERT(br == hdr.tmd_size);
+        offset += ALIGN(hdr.tmd_size, 0x40);
+
+	return tmd->title_id;
+}
+
+u16 get_revision(FIL *fil)
+{
+        u32 br;
+        struct wadheader hdr __attribute__((aligned(32)));
+        f_lseek(fil, 0);
+        ASSERT(!f_read(fil, &hdr, sizeof(hdr), &br));
+        ASSERT(br == sizeof(hdr));
+
+        u32 offset = 0;
+
+        ASSERT(hdr.hdr_size == 0x20);
+
+        offset += ALIGN(hdr.hdr_size, 0x40);
+        offset += ALIGN(hdr.certs_size, 0x40);
+        struct tik *tik = memalign(32, hdr.tik_size);
+        ASSERT(tik);
+        f_lseek(fil, offset);
+        ASSERT(!f_read(fil, tik, hdr.tik_size, &br));
+        ASSERT(br == hdr.tik_size);
+        offset += ALIGN(hdr.tik_size, 0x40);
+        struct tmd *tmd = memalign(32, hdr.tmd_size);
+        ASSERT(tmd);
+        f_lseek(fil, offset);
+        ASSERT(!f_read(fil, tmd, hdr.tmd_size, &br));
+        ASSERT(br == hdr.tmd_size);
+        offset += ALIGN(hdr.tmd_size, 0x40);
+
+        return tmd->title_version;
 }

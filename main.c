@@ -30,7 +30,11 @@ Copyright (C) 2009              John Kelley <wiidev@kelley.ca>
 #include "wad.h"
 #include "aes.h"
 
+#include "string.h"
+
 #define MINIMUM_MINI_VERSION 0x00010001
+#define TITLEID1(titleId)           ((u32)((titleId) >> 32))
+#define TITLEID2(titleId)           ((u32)(titleId))
 
 seeprom_t seeprom;
 
@@ -176,7 +180,7 @@ int main(void)
 			; // better ideas welcome!
 	}
 
-    print_str_noscroll(112, 112, "ohai, world!\n");
+//    print_str_noscroll(112, 112, "ohai, world!\n");
 
 	testOTP();
 
@@ -215,8 +219,10 @@ int main(void)
 	
 	nandfs_walk();
 
+	int region = 0;
 	static char pathname[1024];
 	printf("diropen: %d\n", f_opendir(&fatd, "wad"));
+	printregion("USA");
 	while(1) {
 		printf("readdir: %d\n", f_readdir(&fatd, &fati));
 		if(fati.fname[0] == 0) break;
@@ -224,10 +230,37 @@ int main(void)
 		FRESULT ret = f_open(&fatf, pathname, FA_READ);
 		printf("open %s: %d\n", pathname, ret);
 		if(ret) continue;
-		gfx_printf("Installing %s\n", pathname);
-		gfx_printf("fsize: %d\n", fatf.fsize);
+//		gfx_printf("Installing %s\n", pathname);
+//		gfx_printf("fsize: %d\n", fatf.fsize);
+		printwhichwad(pathname, fatf.fsize);
 
 		if(wad_install(&fatf)) break;
+		u64 ttid = get_titleid(&fatf);
+		de_printf("TITLEID1: %u TITLEID2: %u              ", TITLEID1(ttid), TITLEID2(ttid));
+		if(TITLEID1(ttid) == 1 && TITLEID2(ttid) == 2) {
+			switch (get_revision(&fatf)) {
+				case 97: case 193: case 225: case 257: case 289: case 353: case 385: case 417: case 449: case 481: case 513:
+					region = 0; // USA
+					break;
+				case 130: case 162: case 194: case 226: case 258: case 290: case 354: case 386: case 418: case 450: case 482: case 514:
+					region = 1; // EUR
+					break;
+				case 128: case 192: case 224: case 256: case 288: case 352: case 384: case 416: case 448: case 480: case 512: 
+					region = 2; // JPN
+					break;
+			}
+		}
+		switch (region) {
+			case 0:
+				printregion("USA");
+				break;
+			case 1:
+				printregion("EUR");
+				break;
+			case 2:
+				printregion("JPN");
+				break;
+		}
 	}
 
 	printf("create: %d\n", nandfs_create("/title/00000001/00000002/data/setting.txt", 0, 0, NANDFS_ATTR_FILE, 3, 3, 3));
@@ -238,8 +271,23 @@ int main(void)
 	char settingTxt[0x100] __attribute__((aligned(32)));
 	memset(settingTxt, 0, 0x100);
 
+	char video[5] = "NTSC";
+	char gameRegion[3] = "US";
+	char area[4] = "USA";
+	switch (region) {
+		case 1:
+			strcpy(gameRegion, "EU");
+			strcpy(video, "PAL");
+			strcpy(area, "EUR");
+			break;
+		case 2:
+			strcpy(gameRegion, "JP");
+			strcpy(video, "PAL");
+			strcpy(area, "JPN");
+			break;
+	}
 	u32 serno = 104170609;
-	sprintf(settingTxt, "AREA=USA\r\nMODEL=RVL-001(USA)\r\nDVD=0\r\nMPCH=0x7FFE\r\nCODE=LU\r\nSERNO=%d\r\nVIDEO=NTSC\r\nGAME=US\r\n", serno);
+	sprintf(settingTxt, "AREA=%s\r\nMODEL=RVL-001(%s)\r\nDVD=0\r\nMPCH=0x7FFE\r\nCODE=LU\r\nSERNO=%d\r\nVIDEO=%s\r\nGAME=%s\r\n", area, area, serno, video, gameRegion);
 
 	lolcrypt((u8 *)settingTxt);
 
@@ -253,7 +301,8 @@ int main(void)
 	nandfs_walk();
 
 	boot2_run(1, 2);
-	gfx_printf("Done\n");
+//		gfx_printf("Done\n");
+	printdone();
 
 	return 0;
 }

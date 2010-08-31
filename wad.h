@@ -23,4 +23,6 @@ struct wadheader {
 };
 
 s32 wad_install(FIL *fil);
+u64 get_titleid(FIL *fil);
+u16 get_revision(FIL *fil);
 #endif

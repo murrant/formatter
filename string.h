@@ -26,6 +26,7 @@ size_t strspn(const char *, const char *);
 size_t strcspn(const char *, const char *);
 int my_atoi(const char *s);
 int my_atoi_hex(const char *s, int n);
+void strcpy(char *, const char *);
 
 #endif
 

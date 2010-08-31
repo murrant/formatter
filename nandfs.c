@@ -30,6 +30,8 @@ Copyright (C) 2008, 2009	Sven Peter <svenpeter@gmail.com>
 #define NANDFS_CLUSTER_UNK		0xFFFF // I have some of these but
                                        // sure what they are
 
+//#define LUKEHAXX 1
+
 struct _nandfs_file_node {
 	char name[NANDFS_NAME_LEN];
 	u8 attr;
@@ -386,6 +388,9 @@ static struct _nandfs_file_node *nandfs_new_node(u32 uid, u16 gid, u8 attr, u8 u
 
 s32 nandfs_format()
 {
+#ifdef LUKEHAXX
+	return 0;
+#endif
 	u32 i;
 	for (i=0; i < sizeof(sffs.sffs.cluster_table) / sizeof(u16); i++) {
 #if NANDFS_VERBOSE >= 2
@@ -449,6 +454,9 @@ s32 nandfs_create(const char *path, u32 uid, u16 gid, u8 attr, u8 user_perm, u8 
 				   strncmp(cur->name, ptr, len) == 0 &&
 				   strnlen(cur->name, 12) == len) {
 				// I guess it already exists?
+#ifdef LUKEHAXX
+				return 0;
+#endif
 				return -1;
 			} else if((cur->sibling&0xffff) != 0xffff) {
 				// Next file in dir
