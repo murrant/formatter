@@ -13,4 +13,4 @@ Title ID            Version
 000000010000001e    1040              (IOS30, for menu)
 000000010000001f    1037              (IOS31, for EULA)
 0001000848414b45    2                 (EULA)
-0001000848414c45    2                 (rgnsel)
+0001000848414c45    1                 (rgnsel)
