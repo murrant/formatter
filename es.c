@@ -175,13 +175,14 @@ s32 es_addtitlecontent(struct tmd *tmd, u16 index, void *buf, u32 size)
 	SHA1Input(&ctx, buf, size);
 	ASSERT(SHA1Result(&ctx));
 	if(memcmp(ctx.Message_Digest, tmd->contents[i].hash, 20)) {
+		gfx_printf("Hash failure size=%d, writing anyway.", size);
 		printf("Hash failure size=%d:\n", size);
 		hexdump(ctx.Message_Digest, 20);
 		hexdump(tmd->contents[i].hash, 20);
 		if(size == 64) {
 			hexdump(buf, 64);
 		}
-		while(1);
+		//write it anyway
 	}
 
 	printf("cid %08x writing ", tmd->contents[i].cid);
