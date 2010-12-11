@@ -55,27 +55,27 @@ static void dsp_reset(void)
 }
 
 static char ascii(char s) {
-  if(s < 0x20) return '.';
-  if(s > 0x7E) return '.';
-  return s;
+	if(s < 0x20) return '.';
+	if(s > 0x7E) return '.';
+	return s;
 }
 
 void hexdump(void *d, int len) {
-  u8 *data;
-  int i, off;
-  data = (u8*)d;
-  for (off=0; off<len; off += 16) {
-    printf("%08x  ",off);
-    for(i=0; i<16; i++)
-      if((i+off)>=len) printf("   ");
-      else printf("%02x ",data[off+i]);
+	u8 *data;
+	int i, off;
+	data = (u8*)d;
+	for (off=0; off<len; off += 16) {
+		printf("%08x  ",off);
+		for(i=0; i<16; i++)
+		if((i+off)>=len) printf("   ");
+		else printf("%02x ",data[off+i]);
 
-    printf(" ");
-    for(i=0; i<16; i++)
-      if((i+off)>=len) printf(" ");
-      else printf("%c",ascii(data[off+i]));
-    printf("\n");
-  }
+		printf(" ");
+		for(i=0; i<16; i++)
+		if((i+off)>=len) printf(" ");
+		else printf("%c",ascii(data[off+i]));
+		printf("\n");
+	}
 }
 	
 void testOTP(void)
@@ -186,8 +186,8 @@ int main(void)
 	}
 
 //    print_str_noscroll(112, 112, "ohai, world!\n");
-        gfx_printf("Formatter!");
-        gfx_printf("I'm about to delete EVERYTHING and");
+	gfx_printf("Formatter!");
+	gfx_printf("I'm about to delete EVERYTHING and");
 	gfx_printf("install the wads in the wad folder.");
 	gfx_printf("If you do not want to proceed, hold");
 	gfx_printf("the POWER button on your Wii now.");
@@ -198,7 +198,7 @@ int main(void)
 	hexdump(otp.nand_key, 16);
 
 
-    if(testAES()) return 0;
+	if(testAES()) return 0;
 
 	printf("test: %x\n", my_atoi_hex("00002a4e", 8));
 
